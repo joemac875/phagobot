@@ -1,5 +1,9 @@
 #include <kilolib.h>
 
+#define DEBUG
+#include <debug.h>
+// Only needed for debugging
+#include <inttypes.h>
 // Define the number of neighbors we accept
 #define maxN 4
 
@@ -7,7 +11,7 @@
 typedef struct {
     int id;
     int distance;
-    uint8_t timestamp;
+    uint32_t timestamp;
 } neighbor_t;
 
 // Message flags
@@ -58,8 +62,8 @@ void purge(void){
 }
 
 void loop() {
+    //printf("%i\n", kilo_uid);
     if (new_message==0){
-    purge();
     if (N_neighbors == 0)
         set_color(RGB(1, 0, 0));
     else if (N_neighbors == 1)
@@ -73,12 +77,14 @@ void loop() {
 message_t *message_tx()
 {
     return &message;
+    
 }
 
 void message_tx_success()
 {
     // Set the flag on message transmission.
     message_sent = 1;
+    purge();
 }
 
 
@@ -91,13 +97,15 @@ void message_rx(message_t *message, distance_measurement_t *distance)
     // MY IDS ARE NOT UNIQUE
     int id = message->data[0];
     // Check to see if the id is in the list of neighbors
-    for (i = 0; i < N_neighbors; i++)
+    for (i = 0; i < N_neighbors; i++){
+        printf("Neighbor Count %i id %i time %" PRId32 "\n",N_neighbors, neighbors[i].id,neighbors[i].timestamp);
         if (neighbors[i].id == id)
         {// found it
             neighbors[i].distance = estimate_distance(distance);
             neighbors[i].timestamp = kilo_ticks;
             break;
         }
+    }
     //if (N_neighbors < maxN-1) // if we have too many neighbors,
     if (i == N_neighbors){
         N_neighbors++;
@@ -113,6 +121,7 @@ void message_rx(message_t *message, distance_measurement_t *distance)
 
 
 int main() {
+    debug_init();
     // initialize hardware
     kilo_init();
     // Register the message_tx callback function
