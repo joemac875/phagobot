@@ -2,7 +2,7 @@
     "botName" : "follow bot",
     "randSeed" : 1,
     "nBots" : 20,
-    "formation": "line",
+    "formation": "pile",
     "timeStep" : 0.0416666,
     "simulationTime" : 0,
     "commsRadius" : 70,
